@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mohd_sami_task3/screens/reportpage.dart';
+import 'package:html/parser.dart' as html_parser;
 
 class QuizPage extends StatefulWidget {
   final String category;
@@ -54,10 +55,19 @@ class _QuizPageState extends State<QuizPage> {
     if (response.statusCode == 200) {
       setState(() {
         questions = json.decode(response.body)['results'];
-        // Shuffle options for each question only once
+
         for (var question in questions) {
+          question['question'] =
+              html_parser.parse(question['question']).body!.text;
+
           List<String> options =
               List<String>.from(question['incorrect_answers']);
+          options = options
+              .map((option) => html_parser.parse(option).body!.text)
+              .toList();
+
+          String correctAnswer =
+              html_parser.parse(question['correct_answer']).body!.text;
           options.add(question['correct_answer']);
           options.shuffle();
           question['options'] = options;
